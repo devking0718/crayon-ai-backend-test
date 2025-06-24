@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 from typing import List, Dict, Any, Optional
 from app.core.config import settings
 import tiktoken
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class OpenAIService:
     def __init__(self):
-        openai.api_key = settings.openai_api_key
+        self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = settings.openai_model
         self.max_tokens = settings.openai_max_tokens
         self.temperature = settings.openai_temperature
@@ -19,12 +19,12 @@ class OpenAIService:
         """Generate embedding for text using OpenAI's embedding model."""
         try:
             logger.info(f"Generating embedding with model: {self.embedding_model}")
-            response = openai.Embedding.create(
+            response = self.client.embeddings.create(
                 input=text,
                 model=self.embedding_model
             )
             logger.info(f"Successfully generated embedding with model: {self.embedding_model}")
-            return response['data'][0]['embedding']
+            return response.data[0].embedding
         except Exception as e:
             logger.error(f"Error generating embedding with model {self.embedding_model}: {e}")
             raise
@@ -43,7 +43,7 @@ class OpenAIService:
             # Add system message to the beginning
             full_messages = [{"role": "system", "content": system_message}] + messages
             
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=full_messages,
                 max_tokens=self.max_tokens,
@@ -79,7 +79,7 @@ class OpenAIService:
             Respond with only "YES" or "NO" and a brief reason.
             """
             
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=self.model,  # Use the configured model from settings
                 messages=[{"role": "user", "content": decision_prompt}],
                 max_tokens=50,

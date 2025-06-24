@@ -103,17 +103,6 @@ class MemoryService:
             'text-embedding-3-large': 3072
         }
         
-        # If we don't know the exact model, try to get it from OpenAI
-        if embedding_model not in model_dimensions:
-            try:
-                # Try to get the model info from OpenAI
-                import openai
-                response = openai.Model.retrieve(embedding_model)
-                # This might not work for all models, so we'll fall back to default
-                logger.info(f"Using default dimension for unknown model: {embedding_model}")
-            except:
-                pass
-        
         dimension = model_dimensions.get(embedding_model, 1536)  # Default to 1536
         logger.info(f"Using embedding dimension {dimension} for model {embedding_model}")
         return dimension

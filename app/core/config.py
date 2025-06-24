@@ -1,9 +1,21 @@
-from pydantic import BaseSettings
-from typing import Optional
 import os
+from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Try to import from pydantic_settings, fallback to pydantic if not available
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:
+    try:
+        from pydantic import BaseSettings
+    except ImportError:
+        # Fallback: create a simple settings class without BaseSettings
+        class BaseSettings:
+            def __init__(self, **kwargs):
+                for key, value in kwargs.items():
+                    setattr(self, key, value)
 
 class Settings(BaseSettings):
     # OpenAI Configuration
@@ -25,7 +37,6 @@ class Settings(BaseSettings):
     # Memory Configuration
     memory_similarity_threshold: float = float(os.getenv("MEMORY_SIMILARITY_THRESHOLD", "0.7"))
     max_memories_to_retrieve: int = int(os.getenv("MAX_MEMORIES_TO_RETRIEVE", "5"))
-    
     
     class Config:
         env_file = ".env"
